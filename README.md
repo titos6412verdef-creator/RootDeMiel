@@ -1,30 +1,55 @@
-# RootdeMiel
+# RootDeMiel
 
+RootDeMiel is a Flutter-based reference book review app designed to help students find the best learning resources efficiently.
 
-試験的に作成した参考書レビューアプリ。 
-Experimental Textbook Review App
+## Purpose
 
-目的（Purpose）: 
-・指導者側の主観的な評価、生存バイアスを除くための客観的な指標が欲しい 
-・教材そのものの研究ではなく教材の使い方の研究に時間を使うため 
-・役割が重複している参考書を購入して時間を浪費する学生を減らすため 
-
-To provide objective indicators that eliminate subjective evaluations and survivorship bias from instructors.
-To focus research time on how textbooks are used rather than on the textbooks themselves.
-To help students avoid wasting time purchasing textbooks with overlapping content.
-
-Lotre de mier（仏語：ラッコ）が好きなのでこの名前に。 
-I named it "Lotre de Miel (French for “sea otter”), because I like them.
+- Provide objective indicators for book evaluation to reduce the impact of subjective opinions and survival bias.  
+- Focus research on how to use learning materials effectively, not just the materials themselves.  
+- Help students avoid wasting time and money on overlapping or redundant books.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This app allows you to:
 
-A few resources to get you started if this is your first Flutter project:
+1. **Register books**  
+   - Tap the "+" button at the bottom right.  
+   - Enter the book title or ISBN.  
+   - Select the school category and subject from the dropdowns.  
+   - Already registered books cannot be added again.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+2. **Read reviews of books**  
+   - Tap the "Book List" button at the bottom left.  
+   - Use sorting and filtering to find the books you are looking for.  
+   - Tap a book to see its detailed page and past reviews.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+3. **Write reviews for books**  
+   - Tap "Review this book" at the bottom of the book detail page.  
+   - Fill in your ratings and comments.  
+   - You can refer to the "Rating Guide" page for explanations of each evaluation item.
+
+4. **Compare and consider books for purchase**  
+   - Check "Compare" on the book list screen.  
+   - Tap the "Compare" button at the bottom.  
+   - Review the overall evaluation of the selected book sets.
+
+5. **Save your book lists (My Sets)**  
+   - Create a list while considering purchases.  
+   - Save your set via the top-right menu.  
+   - Each unique combination can only be saved once per user.
+
+6. **Share your book lists publicly**  
+   - Access the "Settings" button at the bottom.  
+   - Change public settings for user info and saved sets.
+
+7. **Explore recommended book sets**  
+   - Tap the "Recommended" button at the bottom.  
+   - Popular Reviews tab: see highly-rated reviews.  
+   - Popular Book Sets tab: see the popularity of book combinations.  
+   - Useful for discovering the most popular sets for different learning goals.
+
+## Resources
+
+- [Flutter Documentation](https://docs.flutter.dev/) – tutorials, samples, and full API reference.
+- This app is built with Flutter and Dart.
+
