@@ -1,0 +1,18 @@
+# Dart/Pub
+.dart_tool/
+.packages
+.pub/
+build/
+.idea/
+.vscode/
+*.iml
+
+# Flutter generated
+.flutter-plugins
+.flutter-plugins-dependencies
+.melos_tool/
+
+# Others
+android/.gradle/
+ios/Pods/
+*.log

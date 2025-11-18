@@ -1,0 +1,89 @@
+# ------------------------
+# Miscellaneous / 雑多ファイル
+# ------------------------
+*.class           # Javaコンパイル済みクラスファイル
+*.log             # ログファイル
+*.pyc             # Pythonバイトコード
+*.swp             # Vimスワップファイル
+.DS_Store         # macOSメタデータ
+*.apk             # Androidアプリパッケージ
+*.ap_             # Androidパッケージ関連
+*.dex             # Android dexファイル
+*.class           # Javaクラスファイル
+*.jar             # Javaアーカイブ
+*.keystore        # Android署名キーストア
+*.orig            # マージ衝突時の元ファイル
+*.lock            # パッケージロックファイル（管理する場合は除外）
+*.rej             # マージ失敗ファイル
+*.so              # Androidライブラリ
+*.zip             # バイナリ配布用
+*.tar.gz          # 圧縮アーカイブ
+*.tgz
+*.bak
+*.tmp
+*.old
+.migrate_working_dir/ # 個別作業用フォルダ
+
+# ------------------------
+# IDE / エディタ関連
+# ------------------------
+*.iml
+*.ipr
+*.iws
+.idea/
+.vscode/           # VS Codeの設定（含めたい場合はコメントを外す）
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# ------------------------
+# Flutter/Dart/Pub関連
+# ------------------------
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+**/doc/api/
+**/ios/Flutter/.last_build_id
+
+# ------------------------
+# Androidビルドアーティファクト
+# ------------------------
+/android/.gradle
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/local.properties
+/android/app/build/
+android/.cxx/
+android/captures/
+
+# ------------------------
+# iOSビルドアーティファクト
+# ------------------------
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/Flutter/Flutter.xcframework
+ios/Flutter/ephemeral/
+ios/Pods/
+ios/.symlinks/
+ios/Runner.xcworkspace/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+
+# ------------------------
+# Symbolication / Obfuscation
+# ------------------------
+app.*.symbols
+app.*.map.json
+
+# ------------------------
+# Others
+# ------------------------
+*.bak
+*.tmp
+*.old
