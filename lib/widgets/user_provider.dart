@@ -6,6 +6,7 @@ import '../db/database_helper.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'dart:io';
+import 'dart:async';
 
 /// 環境に応じたベースURLを返す
 String getBaseUrl() {
@@ -67,7 +68,10 @@ class UserProvider extends ChangeNotifier {
   Future<Map<String, dynamic>?> _fetchAnonymousUserFromServer() async {
     try {
       final url = Uri.parse('${getBaseUrl()}/api/anonymous_user');
-      final response = await http.get(url);
+
+      final response = await http
+          .get(url)
+          .timeout(const Duration(seconds: 3)); // ★ timeout を追加
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -75,6 +79,12 @@ class UserProvider extends ChangeNotifier {
         debugPrint('[UserProvider] サーバーから取得できませんでした: ${response.statusCode}');
         return null;
       }
+    } on SocketException {
+      debugPrint('[UserProvider] ネットワーク未接続 or サーバー未起動');
+      return null;
+    } on TimeoutException {
+      debugPrint('[UserProvider] タイムアウト: サーバー反応なし');
+      return null;
     } catch (e) {
       debugPrint('[UserProvider] サーバー接続エラー: $e');
       return null;
