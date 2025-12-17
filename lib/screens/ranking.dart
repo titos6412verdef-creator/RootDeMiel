@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../db/database_helper.dart';
 import 'my_picks_detail.dart';
-import 'hash_book.dart';
+import 'book_hash.dart';
 
 /// おすすめランキング画面
 /// 「人気教材セット」と「人気レビュー」の2タブで表示

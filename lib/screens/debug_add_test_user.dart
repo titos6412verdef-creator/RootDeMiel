@@ -27,7 +27,7 @@ class _DebugAddTestUserScreenState extends State<DebugAddTestUserScreen> {
       final users = [
         // 管理者アカウント
         {
-          'email': 't.ito.s6412.verfe@gmail.com',
+          'email': 't.ito.s6412.verdef@gmail.com',
           'password': 'tokihaima0102',
           'username': '管理者',
           'user_id': '00000000-0000-0000-0000-000000000000',

@@ -5,7 +5,7 @@ import '../db/database_helper.dart';
 import '../widgets/average_score.dart';
 import '../repositories/review_repository.dart';
 import '../repositories/review_repository_impl.dart';
-import 'add_review.dart';
+import 'review_add.dart';
 import '../widgets/user_provider.dart'; // Providerからユーザー情報取得
 
 /// 書籍詳細レビュー画面

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../db/database_helper.dart';
-import 'edit_book.dart';
+import 'book_edit.dart';
 import '../widgets/subject_selector.dart';
 
 /// 書籍管理画面

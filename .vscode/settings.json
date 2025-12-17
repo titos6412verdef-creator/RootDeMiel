@@ -5,6 +5,11 @@
         "mier",
         "NOCASE",
         "Passw",
-        "Rootde"
+        "podspec",
+        "Rootde",
+        "Symbolication",
+        "xcconfig",
+        "xcframework",
+        "xcworkspace"
     ]
 }

@@ -68,6 +68,34 @@ class _AccountScreenState extends State<AccountScreen> {
     return '3'; // 社会人・浪人生
   }
 
+  Future<void> _loginWithEmail(UserProvider userProvider) async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showError('メールアドレスとパスワードを入力してください');
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      final hashed = _hashPassword(password);
+      await userProvider.loginWithEmail(email, hashed);
+      await UserManager.saveCredentials(email, password);
+
+      if (!mounted) return;
+      setState(() => _linkedEmail = email);
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('ログインしました')));
+    } catch (e) {
+      _showError('ログインに失敗しました: $e');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   Future<void> _linkWithEmail(UserProvider userProvider) async {
     final email = _emailControllerNew.text.trim();
     final password = _passwordControllerNew.text.trim();
@@ -89,10 +117,11 @@ class _AccountScreenState extends State<AccountScreen> {
       await UserManager.saveCredentials(email, password);
 
       if (!mounted) return;
+      setState(() => _linkedEmail = email);
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('アカウントを作成しました')));
-      setState(() => _linkedEmail = email);
     } catch (e) {
       _showError('登録に失敗しました: $e');
     } finally {
@@ -100,27 +129,20 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
-  Future<void> _loginWithEmail(UserProvider userProvider) async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (email.isEmpty || password.isEmpty) {
-      _showError('メールアドレスとパスワードを入力してください');
-      return;
-    }
-
+  Future<void> _logout(UserProvider userProvider) async {
     setState(() => _loading = true);
     try {
-      final hashed = _hashPassword(password);
-      await userProvider.loginWithEmail(email, hashed);
-      await UserManager.saveCredentials(email, password);
+      await userProvider.logout();
+      await UserManager.clearCredentials();
+
       if (!mounted) return;
+      setState(() => _linkedEmail = null);
+
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('ログインしました')));
-      setState(() => _linkedEmail = email);
+      ).showSnackBar(const SnackBar(content: Text('ログアウトしました')));
     } catch (e) {
-      _showError('ログインに失敗しました: $e');
+      _showError('ログアウトに失敗しました: $e');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -131,7 +153,7 @@ class _AccountScreenState extends State<AccountScreen> {
     final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('アカウント連携 / ログイン')),
+      appBar: AppBar(title: const Text('アカウント')),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
@@ -152,159 +174,159 @@ class _AccountScreenState extends State<AccountScreen> {
                     style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                   const Divider(height: 32),
-                  ..._buildUnlinkedSection(userProvider),
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  const Text(
-                    '連携するとできること',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text('- メールアドレスで同じアカウントにログイン可能'),
-                  const Text('- 複数端末からデータを引き継ぎ可能'),
-                  const Text('- 投稿したレビューや「いいね」を保持'),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'セキュリティについて',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text('- メールアドレスやパスワードは暗号化され安全に保存されます'),
-                  const Text('- 匿名ユーザーとしての利用も継続可能'),
+
+                  /// ★ ここで分岐
+                  _linkedEmail == null
+                      ? _buildUnlinkedSection(userProvider)
+                      : _buildLinkedSection(userProvider),
                 ],
               ),
             ),
     );
   }
 
-  List<Widget> _buildUnlinkedSection(UserProvider userProvider) => [
-    // ▼ 既存ログイン
-    const Text(
-      "■ すでにアカウントをお持ちの方",
-      style: TextStyle(fontWeight: FontWeight.bold),
-    ),
-    TextField(
-      controller: _emailController,
-      decoration: const InputDecoration(labelText: 'メールアドレス'),
-    ),
-    const SizedBox(height: 12),
-    TextField(
-      controller: _passwordController,
-      decoration: const InputDecoration(labelText: 'パスワード'),
-      obscureText: true,
-    ),
-    const SizedBox(height: 12),
-    ElevatedButton.icon(
-      icon: const Icon(Icons.login),
-      label: const Text('ログイン'),
-      onPressed: () => _loginWithEmail(userProvider),
-    ),
-    const SizedBox(height: 28),
-    const Divider(),
-    const SizedBox(height: 16),
+  // -----------------------------
+  // 未ログイン時 UI
+  // -----------------------------
+  Widget _buildUnlinkedSection(UserProvider userProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "■ すでにアカウントをお持ちの方",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        TextField(
+          controller: _emailController,
+          decoration: const InputDecoration(labelText: 'メールアドレス'),
+        ),
+        const SizedBox(height: 12),
+        TextField(
+          controller: _passwordController,
+          decoration: const InputDecoration(labelText: 'パスワード'),
+          obscureText: true,
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.login),
+          label: const Text('ログイン'),
+          onPressed: () => _loginWithEmail(userProvider),
+        ),
+        const SizedBox(height: 32),
+        const Divider(),
+        const SizedBox(height: 16),
 
-    // ▼ 新規作成折りたたみボタン
-    Center(
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orangeAccent,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        Center(
+          child: ElevatedButton.icon(
+            icon: Icon(
+              _isRegisterSectionExpanded
+                  ? Icons.keyboard_arrow_up
+                  : Icons.person_add_alt,
+            ),
+            label: Text(
+              _isRegisterSectionExpanded ? '新規アカウント作成を閉じる' : '新規アカウントを作成',
+            ),
+            onPressed: () {
+              setState(() {
+                _isRegisterSectionExpanded = !_isRegisterSectionExpanded;
+              });
+            },
           ),
         ),
-        icon: Icon(
-          _isRegisterSectionExpanded
-              ? Icons.keyboard_arrow_up
-              : Icons.person_add_alt,
-          size: 24,
-        ),
-        label: Text(
-          _isRegisterSectionExpanded ? '新規アカウント作成を閉じる' : '新規アカウントを作成',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        onPressed: () {
-          setState(
-            () => _isRegisterSectionExpanded = !_isRegisterSectionExpanded,
-          );
-        },
-      ),
-    ),
-    const SizedBox(height: 16),
+        const SizedBox(height: 16),
 
-    // ▼ 展開セクション
-    AnimatedCrossFade(
-      duration: const Duration(milliseconds: 300),
-      crossFadeState: _isRegisterSectionExpanded
-          ? CrossFadeState.showSecond
-          : CrossFadeState.showFirst,
-      firstChild: const SizedBox.shrink(),
-      secondChild: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 新規メール
-          TextField(
-            controller: _emailControllerNew,
-            decoration: const InputDecoration(labelText: 'メールアドレス'),
-          ),
-          const SizedBox(height: 12),
-          // 新規パスワード
-          TextField(
-            controller: _passwordControllerNew,
-            decoration: const InputDecoration(labelText: 'パスワード'),
-            obscureText: true,
-          ),
-          const SizedBox(height: 12),
-          // ユーザーネーム
-          TextField(
-            controller: _usernameController,
-            decoration: const InputDecoration(labelText: 'ユーザーネーム'),
-          ),
-          const SizedBox(height: 12),
-          // 生年月日
-          Row(
+        AnimatedCrossFade(
+          duration: const Duration(milliseconds: 300),
+          crossFadeState: _isRegisterSectionExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          firstChild: const SizedBox.shrink(),
+          secondChild: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  _birthDate == null
-                      ? '生年月日を選択'
-                      : '生年月日: ${_birthDate!.year}/${_birthDate!.month}/${_birthDate!.day}',
-                ),
+              TextField(
+                controller: _emailControllerNew,
+                decoration: const InputDecoration(labelText: 'メールアドレス'),
               ),
-              ElevatedButton(
-                onPressed: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime(2005),
-                    firstDate: DateTime(1950),
-                    lastDate: DateTime.now(),
-                  );
-                  if (date != null) setState(() => _birthDate = date);
+              const SizedBox(height: 12),
+              TextField(
+                controller: _passwordControllerNew,
+                decoration: const InputDecoration(labelText: 'パスワード'),
+                obscureText: true,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _usernameController,
+                decoration: const InputDecoration(labelText: 'ユーザーネーム'),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _birthDate == null
+                          ? '生年月日を選択'
+                          : '生年月日: '
+                                '${_birthDate!.year}/'
+                                '${_birthDate!.month}/'
+                                '${_birthDate!.day}',
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final date = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime(2005),
+                        firstDate: DateTime(1950),
+                        lastDate: DateTime.now(),
+                      );
+                      if (date != null) {
+                        setState(() => _birthDate = date);
+                      }
+                    },
+                    child: const Text('選択'),
+                  ),
+                ],
+              ),
+              CheckboxListTile(
+                title: const Text('教職員 / 塾関係者です'),
+                value: _isTeacher,
+                onChanged: (val) {
+                  setState(() => _isTeacher = val ?? false);
                 },
-                child: const Text('選択'),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton.icon(
+                icon: const Icon(Icons.person_add),
+                label: const Text('新規アカウントを作成'),
+                onPressed: () => _linkWithEmail(userProvider),
               ),
             ],
           ),
-          CheckboxListTile(
-            title: const Text('教職員 / 塾関係者です'),
-            value: _isTeacher,
-            onChanged: (val) {
-              setState(() => _isTeacher = val ?? false);
-            },
+        ),
+      ],
+    );
+  }
+
+  // -----------------------------
+  // ログイン済み UI
+  // -----------------------------
+  Widget _buildLinkedSection(UserProvider userProvider) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('■ ログイン中', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        ElevatedButton.icon(
+          icon: const Icon(Icons.logout),
+          label: const Text('ログアウト'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.redAccent,
+            minimumSize: const Size(double.infinity, 48),
           ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            icon: const Icon(Icons.person_add),
-            label: const Text('新規アカウントを作成'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color.fromARGB(255, 64, 255, 163),
-              minimumSize: const Size(double.infinity, 48),
-            ),
-            onPressed: () => _linkWithEmail(userProvider),
-          ),
-        ],
-      ),
-    ),
-  ];
+          onPressed: () => _logout(userProvider),
+        ),
+      ],
+    );
+  }
 }

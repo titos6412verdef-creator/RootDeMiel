@@ -1,5 +1,3 @@
-// lib/widgets/user_provider.dart
-
 import 'package:flutter/foundation.dart';
 import '../utils/user_manager.dart';
 import '../db/database_helper.dart';
@@ -23,39 +21,36 @@ String getBaseUrl() {
 class UserProvider extends ChangeNotifier {
   String _userId = '';
   String _displayName = '';
+  String _userType = 'other';
+
+  /// ★ ログアウト直後かどうか（サーバー同期制御用）
+  bool _justLoggedOut = false;
+
+  String get userId => _userId;
+  String get currentUserId => _userId;
+  String get displayName => _displayName;
+  String get userType => _userType;
 
   /// 初期化：匿名ID生成＆サーバーから情報取得
-  Future<void> init({bool skipServer = false}) async {
-    // UserManagerで匿名ID生成・DB登録
+  Future<void> init() async {
     await UserManager.init();
+
     _userId = UserManager.currentUserId;
     _displayName = UserManager.displayName;
 
-    debugPrint(
-      '[UserProvider] init: _userId=$_userId, _displayName=$_displayName',
-    );
-
-    if (!skipServer) {
-      // ローカルサーバーから匿名ユーザー情報取得
+    // ★ ログアウト直後はサーバー同期しない
+    if (!_justLoggedOut) {
       final serverUser = await _fetchAnonymousUserFromServer();
       if (serverUser != null) {
         _userId = serverUser['user_id'] ?? _userId;
         _displayName = serverUser['username'] ?? _displayName;
         await UserManager.setDisplayName(_displayName);
-        debugPrint(
-          '[UserProvider] Server data applied: _userId=$_userId, _displayName=$_displayName',
-        );
       }
-    } else {
-      debugPrint('[UserProvider] Server fetch skipped');
     }
 
+    _justLoggedOut = false; // ★ 一度使ったら戻す
     notifyListeners();
   }
-
-  String get userId => _userId;
-  String get currentUserId => _userId;
-  String get displayName => _displayName;
 
   /// ディスプレイ名更新
   Future<void> setDisplayName(String name) async {
@@ -69,9 +64,7 @@ class UserProvider extends ChangeNotifier {
     try {
       final url = Uri.parse('${getBaseUrl()}/api/anonymous_user');
 
-      final response = await http
-          .get(url)
-          .timeout(const Duration(seconds: 3)); // ★ timeout を追加
+      final response = await http.get(url).timeout(const Duration(seconds: 3));
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
@@ -101,6 +94,9 @@ class UserProvider extends ChangeNotifier {
   }
 
   /// ログアウト
+  /// - 確認ダイアログなし
+  /// - アカウント削除なし
+  /// - 即UI反映
   Future<void> logout() async {
     debugPrint('[Logout] Start');
 
@@ -108,10 +104,13 @@ class UserProvider extends ChangeNotifier {
 
     _userId = UserManager.anonUserId;
     _displayName = '匿名ラッコ';
+    _userType = 'other';
+
+    _justLoggedOut = true; // ★ 次回 init でサーバー同期を防ぐ
 
     notifyListeners();
 
-    debugPrint('[Logout] Done: _userId=$_userId, _displayName=$_displayName');
+    debugPrint('[Logout] Done: userId=$_userId, displayName=$_displayName');
   }
 
   /// ユーザー情報更新（UI更新用）
@@ -158,6 +157,7 @@ class UserProvider extends ChangeNotifier {
     );
 
     _displayName = username;
+    _userType = userType;
 
     debugPrint(
       '[linkWithEmail] email=$email, username=$username, user_type=$userType',
@@ -170,34 +170,26 @@ class UserProvider extends ChangeNotifier {
   Future<void> loginWithEmail(String email, String hashedPassword) async {
     final db = await DatabaseHelper.instance.database;
 
-    debugPrint('================ [Login Attempt] ================');
-    debugPrint('[Login] Input email=$email, hash=$hashedPassword');
-    debugPrint('[Login] Current _userId(before query)=$_userId');
-
     final user = await db.query(
       'Users',
       where: 'email = ? AND password_hash = ?',
       whereArgs: [email, hashedPassword],
     );
 
-    debugPrint('[Login] Query result count=${user.length}');
-    debugPrint('[Login] Query result=$user');
-
     if (user.isEmpty) {
-      debugPrint('[Login] user.isEmpty -> invalid credentials');
       throw Exception('メールアドレスまたはパスワードが間違っています');
     }
 
     final uid = user.first['user_id'] as String;
     final name = user.first['username'] as String? ?? 'ユーザー';
+    final type = user.first['user_type'] as String? ?? 'other';
 
-    debugPrint('[Login] DB returned uid=$uid, name=$name');
+    // 権限セット
+    DatabaseHelper.currentUserType = type;
 
-    // データベースは書き換えず、表示時に現在ログインIDにマッピング
+    _userType = type;
     setUser(uid, name);
 
-    final allUsers = await db.query('Users');
-    debugPrint('[Login] Users table snapshot: $allUsers');
-    debugPrint('=================================================');
+    debugPrint('[Login] uid=$uid, name=$name, type=$type');
   }
 }
