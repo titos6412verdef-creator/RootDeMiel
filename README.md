@@ -9,7 +9,7 @@ RootDeMiel is a Flutter-based reference book review app designed to help student
 - Help students avoid wasting time and money on overlapping or redundant books.
 
 ## Getting Started
-
+how to use:https://github.com/titos6412verdef-creator/RootDeMiel/blob/main/assets/pdf/app_guide.pdf
 This app allows you to:
 
 1. **Register books**  
